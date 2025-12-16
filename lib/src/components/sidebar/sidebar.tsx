@@ -27,6 +27,7 @@ import {
 	SidebarMenuItem,
 	SidebarMenuSubButton,
 } from '@/components/ui/sidebar'
+import { DocumentationProps } from '../types/DocumentationProps'
 
 // Main navigation items
 const mainNavItems = [
@@ -49,7 +50,11 @@ const gettingStartedItems = [
 
 const versions = ['v1.0.0', 'v0.9.0', 'v0.8.0']
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+	title = 'Documentation',
+	logo = <Boxes className='size-4' />,
+	...props
+}: React.ComponentProps<typeof Sidebar> & DocumentationProps) {
 	const [selectedVersion, setSelectedVersion] = React.useState(versions[0])
 
 	return (
@@ -61,9 +66,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 						className='flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors'
 					>
 						<div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground'>
-							<Boxes className='size-4' />
+							{logo}
 						</div>
-						<span className='font-semibold'>dock-rush</span>
+						<span className='font-semibold'>{title}</span>
 					</a>
 					<Select value={selectedVersion} onValueChange={setSelectedVersion}>
 						<SelectTrigger className='h-6 w-auto min-w-16 border border-sidebar-border bg-sidebar-accent/50 hover:bg-sidebar-accent shadow-none focus:ring-0 focus:ring-offset-0 p-0 px-2 text-xs'>
