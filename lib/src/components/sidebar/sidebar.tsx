@@ -1,12 +1,4 @@
-import {
-	Book,
-	Box,
-	Boxes,
-	Code,
-	GraduationCap,
-	MessageCircle,
-	Package,
-} from 'lucide-react'
+import { Boxes } from 'lucide-react'
 import * as React from 'react'
 
 import {
@@ -26,36 +18,37 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 	SidebarMenuSubButton,
+	SidebarMenuSub,
 } from '@/components/ui/sidebar'
 import { DocumentationProps } from '../types/DocumentationProps'
+import { DocsTree, DocVersionNode, DocNode, DocPageNode } from '@/docs/types'
+import { renderDocNode } from './doc-node-renderer'
 
-// Main navigation items
-const mainNavItems = [
-	{ title: 'Documentation', icon: Book, url: '#', isActive: true },
-	{ title: 'Components', icon: Boxes, url: '#' },
-	{ title: 'Templates', icon: Package, url: '#' },
-	{ title: 'UI Kit', icon: Box, url: '#' },
-	{ title: 'Playground', icon: Code, url: '#' },
-	{ title: 'Course', icon: GraduationCap, url: '#' },
-	{ title: 'Community', icon: MessageCircle, url: '#' },
-]
-
-// Getting Started section items
-const gettingStartedItems = [
-	{ title: 'Installation', url: '#', isActive: true },
-	{ title: 'Editor setup', url: '#' },
-	{ title: 'Compatibility', url: '#' },
-	{ title: 'Upgrade guide', url: '#' },
-]
-
-const versions = ['v1.0.0', 'v0.9.0', 'v0.8.0']
+type AppSidebarProps = React.ComponentProps<typeof Sidebar> &
+	DocumentationProps & {
+		tree?: DocsTree
+		currentVersion?: DocVersionNode | null
+		onPageSelect?: (page: DocPageNode) => void
+		selectedPage?: DocPageNode | null
+	}
 
 export function AppSidebar({
 	title = 'Documentation',
 	logo = <Boxes className='size-4' />,
+	tree = [],
+	currentVersion,
+	onPageSelect,
+	selectedPage,
 	...props
-}: React.ComponentProps<typeof Sidebar> & DocumentationProps) {
-	const [selectedVersion, setSelectedVersion] = React.useState(versions[0])
+}: AppSidebarProps) {
+	const versions = tree.map(v => v.version)
+	const [selectedVersion, setSelectedVersion] = React.useState(
+		currentVersion?.version || versions[0] || ''
+	)
+
+	// Находим выбранную версию
+	const activeVersion =
+		tree.find(v => v.version === selectedVersion) || currentVersion || null
 
 	return (
 		<Sidebar {...props}>
@@ -85,42 +78,22 @@ export function AppSidebar({
 				</div>
 			</SidebarHeader>
 			<SidebarContent>
-				{/* Main Navigation */}
-				<SidebarGroup>
-					<SidebarMenu>
-						{mainNavItems.map(item => {
-							const Icon = item.icon
-							return (
-								<SidebarMenuItem key={item.title}>
-									<SidebarMenuButton asChild isActive={item.isActive}>
-										<a href={item.url}>
-											<Icon />
-											<span>{item.title}</span>
-										</a>
-									</SidebarMenuButton>
-								</SidebarMenuItem>
-							)
-						})}
-					</SidebarMenu>
-				</SidebarGroup>
-
-				{/* Getting Started Section */}
-				<SidebarGroup>
-					<SidebarGroupLabel>GETTING STARTED</SidebarGroupLabel>
-					<SidebarMenu>
-						{gettingStartedItems.map(item => (
-							<SidebarMenuItem key={item.title}>
-								<SidebarMenuSubButton
-									asChild
-									isActive={item.isActive}
-									className='relative pl-3 before:absolute before:left-0 before:top-0 before:h-full before:w-0.5 before:rounded-r before:bg-sidebar-border data-[active=true]:before:bg-sidebar-accent-foreground'
-								>
-									<a href={item.url}>{item.title}</a>
-								</SidebarMenuSubButton>
+				{activeVersion && activeVersion.children.length > 0 ? (
+					activeVersion.children.map(node =>
+						renderDocNode(node, selectedPage, onPageSelect)
+					)
+				) : (
+					<SidebarGroup>
+						<SidebarGroupLabel>No documentation</SidebarGroupLabel>
+						<SidebarMenu>
+							<SidebarMenuItem>
+								<div className='px-2 py-1.5 text-sm text-muted-foreground'>
+									Add markdown files to get started
+								</div>
 							</SidebarMenuItem>
-						))}
-					</SidebarMenu>
-				</SidebarGroup>
+						</SidebarMenu>
+					</SidebarGroup>
+				)}
 			</SidebarContent>
 		</Sidebar>
 	)
