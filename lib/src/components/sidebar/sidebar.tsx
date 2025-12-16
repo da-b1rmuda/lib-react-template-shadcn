@@ -22,9 +22,12 @@ import {
 	SidebarMenuSub,
 } from '@/components/ui/sidebar'
 import { DocumentationProps } from '../types/DocumentationProps'
+<<<<<<< HEAD
 import { DocsTree, DocVersionNode, DocNode, DocPageNode } from '@/docs/types'
 import { buildSearchIndex, SearchResult } from '@/docs/search'
 import { renderDocNode } from './doc-node-renderer'
+=======
+>>>>>>> 9cfb902 (Enhance Documentation and AppSidebar components to accept title and logo props, and conditionally render ThemeToggle based on useToggleTheme prop.)
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> &
 	DocumentationProps & {
@@ -70,6 +73,7 @@ export function AppSidebar({
 		selectedVersionProp || currentVersion?.version || versions[0] || ''
 	)
 
+<<<<<<< HEAD
 	const selectedVersion =
 		selectedVersionProp !== undefined ? selectedVersionProp : uncontrolledVersion
 
@@ -121,15 +125,48 @@ export function AppSidebar({
 	}, [search, searchQuery])
 
 	const hasLanguages = languages && languages.length > 0
+=======
+export function AppSidebar({
+	title = 'Documentation',
+	logo = <Boxes className='size-4' />,
+	...props
+}: React.ComponentProps<typeof Sidebar> & DocumentationProps) {
+	const [selectedVersion, setSelectedVersion] = React.useState(versions[0])
+>>>>>>> 9cfb902 (Enhance Documentation and AppSidebar components to accept title and logo props, and conditionally render ThemeToggle based on useToggleTheme prop.)
 
 	return (
 		<Sidebar {...props}>
 			<SidebarHeader>
+<<<<<<< HEAD
 				<div className='flex items-center gap-3 px-2 py-2'>
 					<div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground'>
 						{logo}
 					</div>
 					<span className='font-semibold'>{title}</span>
+=======
+				<div className='flex items-center justify-between gap-2 px-2 py-2'>
+					<a
+						href='/'
+						className='flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors'
+					>
+						<div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground'>
+							{logo}
+						</div>
+						<span className='font-semibold'>{title}</span>
+					</a>
+					<Select value={selectedVersion} onValueChange={setSelectedVersion}>
+						<SelectTrigger className='h-6 w-auto min-w-16 border border-sidebar-border bg-sidebar-accent/50 hover:bg-sidebar-accent shadow-none focus:ring-0 focus:ring-offset-0 p-0 px-2 text-xs'>
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{versions.map(version => (
+								<SelectItem key={version} value={version}>
+									{version}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+>>>>>>> 9cfb902 (Enhance Documentation and AppSidebar components to accept title and logo props, and conditionally render ThemeToggle based on useToggleTheme prop.)
 				</div>
 			</SidebarHeader>
 			<SidebarContent>

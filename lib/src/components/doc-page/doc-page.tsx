@@ -6,6 +6,7 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from '@/components/ui/sidebar'
+<<<<<<< HEAD
 import { buildDocsTree } from '@/docs/buildDocsTree'
 import { DocNode, DocPageNode, DocsTree } from '@/docs/types'
 import { useDocsSource } from '@/docs/useDocsSource'
@@ -14,10 +15,14 @@ import { useMemo, useState } from 'react'
 import { DocumentationProps } from '../types/DocumentationProps'
 import { DocContent } from './doc-content'
 
+=======
+import { DocumentationProps } from '../types/DocumentationProps'
+>>>>>>> 9cfb902 (Enhance Documentation and AppSidebar components to accept title and logo props, and conditionally render ThemeToggle based on useToggleTheme prop.)
 export function Documentation({
 	title,
 	useToggleTheme = false,
 	logo,
+<<<<<<< HEAD
 	rootDir = '/docs',
 	icons,
 	initialTheme,
@@ -227,13 +232,23 @@ export function Documentation({
 				selectedPage={selectedPage}
 				icons={icons}
 			/>
+=======
+}: DocumentationProps) {
+	return (
+		<SidebarProvider>
+			<AppSidebar title={title} logo={logo} />
+>>>>>>> 9cfb902 (Enhance Documentation and AppSidebar components to accept title and logo props, and conditionally render ThemeToggle based on useToggleTheme prop.)
 			<SidebarInset>
 				<header className='flex h-16 shrink-0 items-center justify-between gap-2 border-b px-3'>
 					<div className='flex items-center gap-2'>
 						<SidebarTrigger />
 						<Separator orientation='vertical' className='mr-2 h-4' />
 					</div>
+<<<<<<< HEAD
 					{useToggleTheme && <ThemeToggle initialMode={initialTheme} />}
+=======
+					{useToggleTheme && <ThemeToggle />}
+>>>>>>> 9cfb902 (Enhance Documentation and AppSidebar components to accept title and logo props, and conditionally render ThemeToggle based on useToggleTheme prop.)
 				</header>
 				<div className='flex flex-1 flex-col gap-4 p-4'>
 					{isLoading && (
