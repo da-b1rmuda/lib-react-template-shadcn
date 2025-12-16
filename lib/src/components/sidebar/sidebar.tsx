@@ -30,6 +30,7 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> &
 		currentVersion?: DocVersionNode | null
 		onPageSelect?: (page: DocPageNode) => void
 		selectedPage?: DocPageNode | null
+		icons?: Record<string, React.ComponentType<{ className?: string }>>
 	}
 
 export function AppSidebar({
@@ -39,6 +40,7 @@ export function AppSidebar({
 	currentVersion,
 	onPageSelect,
 	selectedPage,
+	icons,
 	...props
 }: AppSidebarProps) {
 	const versions = tree.map(v => v.version)
@@ -49,6 +51,24 @@ export function AppSidebar({
 	// Находим выбранную версию
 	const activeVersion =
 		tree.find(v => v.version === selectedVersion) || currentVersion || null
+
+	// Собираем все страницы из активной версии для поиска по pagePath
+	const allPages = React.useMemo(() => {
+		if (!activeVersion) return []
+		const collectPages = (nodes: DocNode[]): DocPageNode[] => {
+			const pages: DocPageNode[] = []
+			for (const node of nodes) {
+				if (node.type === 'page') {
+					pages.push(node)
+				}
+				if ('children' in node && node.children) {
+					pages.push(...collectPages(node.children))
+				}
+			}
+			return pages
+		}
+		return collectPages(activeVersion.children)
+	}, [activeVersion])
 
 	return (
 		<Sidebar {...props}>
@@ -80,7 +100,7 @@ export function AppSidebar({
 			<SidebarContent>
 				{activeVersion && activeVersion.children.length > 0 ? (
 					activeVersion.children.map(node =>
-						renderDocNode(node, selectedPage, onPageSelect)
+						renderDocNode(node, selectedPage, onPageSelect, icons, allPages)
 					)
 				) : (
 					<SidebarGroup>

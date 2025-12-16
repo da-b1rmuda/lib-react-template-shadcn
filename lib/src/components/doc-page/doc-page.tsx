@@ -19,6 +19,7 @@ export function Documentation({
 	useToggleTheme = false,
 	logo,
 	rootDir = '/docs',
+	icons,
 }: DocumentationProps) {
 	// Загружаем файлы документации
 	const files = useDocsSource(rootDir)
@@ -77,6 +78,7 @@ export function Documentation({
 				currentVersion={currentVersion}
 				onPageSelect={setSelectedPage}
 				selectedPage={selectedPage}
+				icons={icons}
 			/>
 			<SidebarInset>
 				<header className='flex h-16 shrink-0 items-center justify-between gap-2 border-b px-3'>

@@ -5,4 +5,5 @@ export type DocumentationProps = {
 	useToggleTheme?: boolean
 	logo?: React.ReactNode
 	rootDir?: string
+	icons?: Record<string, React.ComponentType<{ className?: string }>>
 }
