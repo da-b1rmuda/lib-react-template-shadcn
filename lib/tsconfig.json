@@ -8,7 +8,11 @@
 		"declaration": true,
 		"moduleResolution": "Node",
 		"strict": false,
-		"outDir": "dist"
+		"outDir": "dist",
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["./src/*"]
+		}
 	},
 	"include": ["src"]
 }
