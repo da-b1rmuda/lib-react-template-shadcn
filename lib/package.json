@@ -50,6 +50,7 @@
 		"@radix-ui/react-separator": "^1.1.8",
 		"@radix-ui/react-tooltip": "^1.2.8",
 		"gray-matter": "^4.0.3",
-		"lucide-react": "^0.561.0"
+		"lucide-react": "^0.561.0",
+		"flexsearch": "^0.7.31"
 	}
 }

@@ -14,6 +14,7 @@ import {
 	SidebarGroup,
 	SidebarGroupLabel,
 	SidebarHeader,
+	SidebarInput,
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
@@ -22,6 +23,7 @@ import {
 } from '@/components/ui/sidebar'
 import { DocumentationProps } from '../types/DocumentationProps'
 import { DocsTree, DocVersionNode, DocNode, DocPageNode } from '@/docs/types'
+import { buildSearchIndex, SearchResult } from '@/docs/search'
 import { renderDocNode } from './doc-node-renderer'
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> &
@@ -100,12 +102,28 @@ export function AppSidebar({
 		return collectPages(activeVersion.children)
 	}, [activeVersion])
 
+	// Построение поискового индекса по текущему дереву
+	const { search } = React.useMemo(() => buildSearchIndex(tree), [tree])
+
+	const [searchQuery, setSearchQuery] = React.useState('')
+	const [searchResults, setSearchResults] = React.useState<SearchResult[]>([])
+
+	// Выполняем поиск при смене запроса
+	React.useEffect(() => {
+		if (!searchQuery.trim()) {
+			setSearchResults([])
+			return
+		}
+		setSearchResults(search(searchQuery))
+	}, [search, searchQuery])
+
 	const hasLanguages = languages && languages.length > 0
 
 	return (
 		<Sidebar {...props}>
 			<SidebarHeader>
-				<div className='flex items-center justify-between gap-2 px-2 py-2'>
+				<div className='flex flex-col gap-2 px-2 py-2'>
+					<div className='flex items-center justify-between gap-2'>
 					<a
 						href='/'
 						className='flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors'
@@ -151,10 +169,69 @@ export function AppSidebar({
 							</Select>
 						)}
 					</div>
+					<SidebarInput
+						placeholder='Search documentation...'
+						value={searchQuery}
+						onChange={e => setSearchQuery(e.target.value)}
+						className='mt-1'
+					/>
 				</div>
 			</SidebarHeader>
 			<SidebarContent>
-				{activeVersion && activeVersion.children.length > 0 ? (
+				{searchQuery.trim() && searchResults.length > 0 ? (
+					<SidebarGroup>
+						<SidebarGroupLabel>Search results</SidebarGroupLabel>
+						<SidebarMenu>
+							{searchResults.map(result => {
+								// Ищем реальную страницу по id в активной версии (если есть)
+								const targetPage =
+									allPages.find(p => p.id === result.doc.id) || null
+
+								if (!targetPage) return null
+
+								return (
+									<SidebarMenuItem key={result.doc.id}>
+										<SidebarMenuButton
+											onClick={() => {
+												onPageSelect?.(targetPage)
+												// также переключаем версию, если нужно
+												if (
+													onVersionChange &&
+													result.doc.version !== selectedVersion
+												) {
+													onVersionChange(result.doc.version)
+												}
+											}}
+											variant='outline'
+											size='sm'
+										>
+											<span className='flex flex-col items-start'>
+												<span className='text-xs font-medium'>
+													{result.doc.title}
+												</span>
+												<span className='text-[10px] text-sidebar-foreground/60'>
+													{result.doc.version}
+													{result.doc.lang ? ` · ${result.doc.lang}` : ''}
+												</span>
+											</span>
+										</SidebarMenuButton>
+									</SidebarMenuItem>
+								)
+							})}
+						</SidebarMenu>
+					</SidebarGroup>
+				) : searchQuery.trim() && searchResults.length === 0 ? (
+					<SidebarGroup>
+						<SidebarGroupLabel>No results</SidebarGroupLabel>
+						<SidebarMenu>
+							<SidebarMenuItem>
+								<div className='px-2 py-1.5 text-sm text-muted-foreground'>
+									Nothing found for “{searchQuery}”
+								</div>
+							</SidebarMenuItem>
+						</SidebarMenu>
+					</SidebarGroup>
+				) : activeVersion && activeVersion.children.length > 0 ? (
 					activeVersion.children.map(node =>
 						renderDocNode(node, selectedPage, onPageSelect, icons, allPages)
 					)
