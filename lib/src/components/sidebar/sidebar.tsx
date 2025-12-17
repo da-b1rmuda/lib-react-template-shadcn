@@ -31,6 +31,19 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> &
 		onPageSelect?: (page: DocPageNode) => void
 		selectedPage?: DocPageNode | null
 		icons?: Record<string, React.ComponentType<{ className?: string }>>
+		/**
+		 * Контролируемое значение выбранной версии.
+		 * Если не задано, компонент управляет версией локально.
+		 */
+		selectedVersion?: string
+		onVersionChange?: (version: string) => void
+		/**
+		 * Список доступных языков и текущее значение.
+		 * Если не переданы, переключатель языка не отображается.
+		 */
+		languages?: string[]
+		selectedLanguage?: string
+		onLanguageChange?: (lang: string) => void
 	}
 
 export function AppSidebar({
@@ -41,12 +54,29 @@ export function AppSidebar({
 	onPageSelect,
 	selectedPage,
 	icons,
+	selectedVersion: selectedVersionProp,
+	onVersionChange,
+	languages,
+	selectedLanguage,
+	onLanguageChange,
 	...props
 }: AppSidebarProps) {
 	const versions = tree.map(v => v.version)
-	const [selectedVersion, setSelectedVersion] = React.useState(
-		currentVersion?.version || versions[0] || ''
+
+	// Неконтролируемое состояние версии для обратной совместимости
+	const [uncontrolledVersion, setUncontrolledVersion] = React.useState(
+		selectedVersionProp || currentVersion?.version || versions[0] || ''
 	)
+
+	const selectedVersion =
+		selectedVersionProp !== undefined ? selectedVersionProp : uncontrolledVersion
+
+	const handleVersionChange = (value: string) => {
+		if (selectedVersionProp === undefined) {
+			setUncontrolledVersion(value)
+		}
+		onVersionChange?.(value)
+	}
 
 	// Находим выбранную версию
 	const activeVersion =
@@ -70,6 +100,8 @@ export function AppSidebar({
 		return collectPages(activeVersion.children)
 	}, [activeVersion])
 
+	const hasLanguages = languages && languages.length > 0
+
 	return (
 		<Sidebar {...props}>
 			<SidebarHeader>
@@ -83,18 +115,42 @@ export function AppSidebar({
 						</div>
 						<span className='font-semibold'>{title}</span>
 					</a>
-					<Select value={selectedVersion} onValueChange={setSelectedVersion}>
-						<SelectTrigger className='h-6 w-auto min-w-16 border border-sidebar-border bg-sidebar-accent/50 hover:bg-sidebar-accent shadow-none focus:ring-0 focus:ring-offset-0 p-0 px-2 text-xs'>
-							<SelectValue />
-						</SelectTrigger>
-						<SelectContent>
-							{versions.map(version => (
-								<SelectItem key={version} value={version}>
-									{version}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+					<div className='flex items-center gap-2'>
+						{hasLanguages && selectedLanguage !== undefined && onLanguageChange && (
+							<Select
+								value={selectedLanguage}
+								onValueChange={onLanguageChange}
+							>
+								<SelectTrigger className='h-6 w-auto min-w-16 border border-sidebar-border bg-sidebar-accent/50 hover:bg-sidebar-accent shadow-none focus:ring-0 focus:ring-offset-0 p-0 px-2 text-xs'>
+									<SelectValue placeholder='Lang' />
+								</SelectTrigger>
+								<SelectContent>
+									{languages!.map(lang => (
+										<SelectItem key={lang} value={lang}>
+											{lang.toUpperCase()}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						)}
+						{versions.length > 0 && (
+							<Select
+								value={selectedVersion}
+								onValueChange={handleVersionChange}
+							>
+								<SelectTrigger className='h-6 w-auto min-w-16 border border-sidebar-border bg-sidebar-accent/50 hover:bg-sidebar-accent shadow-none focus:ring-0 focus:ring-offset-0 p-0 px-2 text-xs'>
+									<SelectValue placeholder='Version' />
+								</SelectTrigger>
+								<SelectContent>
+									{versions.map(version => (
+										<SelectItem key={version} value={version}>
+											{version}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						)}
+					</div>
 				</div>
 			</SidebarHeader>
 			<SidebarContent>
