@@ -20,6 +20,7 @@ export type DocPageNode = BaseNode & {
 	lang?: string
 	tags?: string[]
 	content?: string
+	searchable?: boolean
 }
 
 /**
@@ -52,6 +53,11 @@ export type DocGroupNode = BaseNode & {
 export type DocButtonNode = BaseNode & {
 	type: 'button'
 	variant: 'link' | 'page'
+	/**
+	 * Управляет индексацией в поиске для variant: 'page'.
+	 * По умолчанию true, searchable: false выключает индексирование.
+	 */
+	searchable?: boolean
 	// Для variant: 'link'
 	url?: string
 	target?: '_blank' | '_self'
@@ -59,6 +65,7 @@ export type DocButtonNode = BaseNode & {
 	// Для variant: 'page'
 	pagePath?: string
 	filePath?: string
+	content?: string
 }
 
 /**

@@ -1,5 +1,5 @@
 import FlexSearch from 'flexsearch'
-import { DocNode, DocPageNode, DocsTree } from './types'
+import { DocButtonNode, DocNode, DocPageNode, DocsTree } from './types'
 
 /**
  * Модель документа для индексации
@@ -23,7 +23,8 @@ export type SearchResult = {
 
 /**
  * Создаёт индекс FlexSearch по дереву документации.
- * Индексируются только страницы (DocPageNode), кнопки-линки исключаются.
+ * Индексируются только страницы (DocPageNode) и связанные с ними page-кнопки.
+ * link-кнопки и элементы с searchable: false не индексируются.
  */
 export function buildSearchIndex(tree: DocsTree) {
 	const index = new FlexSearch.Document<SearchDocument, true>({
@@ -37,7 +38,35 @@ export function buildSearchIndex(tree: DocsTree) {
 
 	const documents: Record<string, SearchDocument> = {}
 
+	// Собираем пути страниц, которые НЕ должны участвовать в поиске
+	const blockedPagePaths = new Set<string>()
+
+	const collectBlockedFromButtons = (nodes: DocNode[]) => {
+		for (const node of nodes) {
+			if (node.type === 'button') {
+				const btn = node as DocButtonNode
+				// link-кнопки игнорируем полностью
+				if (btn.variant === 'page' && btn.searchable === false && btn.pagePath) {
+					blockedPagePaths.add(btn.pagePath)
+				}
+			}
+
+			if ('children' in node && node.children?.length) {
+				collectBlockedFromButtons(node.children)
+			}
+		}
+	}
+
+	for (const versionNode of tree) {
+		collectBlockedFromButtons(versionNode.children)
+	}
+
 	const addPage = (page: DocPageNode, version: string) => {
+		// Страницы с searchable: false или явно заблокированные по pagePath не индексируем
+		if (page.searchable === false || blockedPagePaths.has(page.path)) {
+			return
+		}
+
 		const doc: SearchDocument = {
 			id: page.id,
 			title: page.title,
@@ -62,10 +91,7 @@ export function buildSearchIndex(tree: DocsTree) {
 			// Кнопки variant: 'link' сознательно НЕ индексируем
 			// (условие задачи: исключение link buttons)
 			if (node.type === 'button') {
-				if (node.variant === 'page' && node.pagePath) {
-					// Ничего не добавляем напрямую: реальные страницы будут
-					// проиндексированы как DocPageNode
-				}
+				// variant: 'page' влияет только на searchable через pagePath (обработано выше)
 				continue
 			}
 

@@ -86,7 +86,8 @@ function createPageNode(
 	return {
 		type: 'page',
 		id: generateId(path),
-		title: getMetaValue(meta, 'title', path.split('/').pop()?.replace('.md', '') || 'Untitled'),
+		title:
+			getMetaValue(meta, 'title', path.split('/').pop()?.replace('.md', '') || 'Untitled'),
 		order: getMetaValue(meta, 'order', 0),
 		icon: getMetaValue(meta, 'icon', undefined),
 		hidden: getMetaValue(meta, 'hidden', false),
@@ -95,6 +96,7 @@ function createPageNode(
 		lang: lang || getMetaValue(meta, 'lang', undefined),
 		tags: getMetaValue(meta, 'tags', undefined),
 		content: parsed.type === 'page' ? parsed.content : undefined,
+		searchable: getMetaValue(meta, 'searchable', true),
 	}
 }
 
@@ -116,6 +118,8 @@ function createButtonNode(fileInfo: FileInfo, filePath: string): DocButtonNode {
 		icon: getMetaValue(meta, 'icon', undefined),
 		hidden: getMetaValue(meta, 'hidden', false),
 		variant,
+		searchable: getMetaValue(meta, 'searchable', true),
+		content: parsed.type === 'button' ? parsed.content : undefined,
 		...(variant === 'link'
 			? {
 					url: getMetaValue(meta, 'url', undefined),

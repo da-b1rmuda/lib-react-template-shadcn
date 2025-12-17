@@ -1,5 +1,3 @@
-import { useMemo, useState } from 'react'
-import * as React from 'react'
 import { AppSidebar } from '@/components/sidebar/sidebar'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Separator } from '@/components/ui/separator'
@@ -8,10 +6,12 @@ import {
 	SidebarProvider,
 	SidebarTrigger,
 } from '@/components/ui/sidebar'
-import { DocumentationProps } from '../types/DocumentationProps'
-import { useDocsSource } from '@/docs/useDocsSource'
 import { buildDocsTree } from '@/docs/buildDocsTree'
-import { DocsTree, DocPageNode, DocNode } from '@/docs/types'
+import { DocNode, DocPageNode, DocsTree } from '@/docs/types'
+import { useDocsSource } from '@/docs/useDocsSource'
+import * as React from 'react'
+import { useMemo, useState } from 'react'
+import { DocumentationProps } from '../types/DocumentationProps'
 import { DocContent } from './doc-content'
 
 export function Documentation({
@@ -20,6 +20,8 @@ export function Documentation({
 	logo,
 	rootDir = '/docs',
 	icons,
+	initialTheme,
+	mdxComponents,
 }: DocumentationProps) {
 	// Загружаем файлы документации
 	const files = useDocsSource(rootDir)
@@ -27,7 +29,34 @@ export function Documentation({
 	// Строим полное дерево документации (все версии и языки)
 	const fullTree = useMemo<DocsTree>(() => {
 		try {
-			return buildDocsTree(files)
+			const tree = buildDocsTree(files)
+
+			// #region agent log
+			// Log successful docs tree build to test hypothesis H3 (whether the crash happens after tree construction).
+			if (typeof window !== 'undefined') {
+				fetch(
+					'http://127.0.0.1:7243/ingest/3d260573-e526-4f00-b009-095d65decae6',
+					{
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							sessionId: 'debug-session',
+							runId: 'pre-fix-1',
+							hypothesisId: 'H3',
+							location: 'src/components/doc-page/doc-page.tsx:line30',
+							message: 'buildDocsTree completed',
+							data: {
+								fileCount: Object.keys(files).length,
+								versionCount: tree.length,
+							},
+							timestamp: Date.now(),
+						}),
+					}
+				).catch(() => {})
+			}
+			// #endregion
+
+			return tree
 		} catch (error) {
 			console.error('Error building docs tree:', error)
 			return []
@@ -204,12 +233,14 @@ export function Documentation({
 						<SidebarTrigger />
 						<Separator orientation='vertical' className='mr-2 h-4' />
 					</div>
-					{useToggleTheme && <ThemeToggle />}
+					{useToggleTheme && <ThemeToggle initialMode={initialTheme} />}
 				</header>
 				<div className='flex flex-1 flex-col gap-4 p-4'>
 					{isLoading && (
 						<div className='flex items-center justify-center min-h-[400px]'>
-							<div className='text-muted-foreground'>Loading documentation...</div>
+							<div className='text-muted-foreground'>
+								Loading documentation...
+							</div>
 						</div>
 					)}
 					{isEmpty && (
@@ -227,7 +258,7 @@ export function Documentation({
 						</div>
 					)}
 					{!isLoading && !isEmpty && !hasError && (
-						<DocContent page={selectedPage} />
+						<DocContent page={selectedPage} components={mdxComponents} />
 					)}
 				</div>
 			</SidebarInset>
